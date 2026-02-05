@@ -18,7 +18,7 @@ bin/
 !**/src/test/**/bin/
 
 ### IntelliJ IDEA ###
-.idea
+backend/.idea
 *.iws
 *.iml
 *.ipr
@@ -36,13 +36,26 @@ out/
 ### VS Code ###
 .vscode/
 
-/src/main/resources/application.yml
-/compose.yaml
-/docker-compose.yml
+# --- Backend (Spring Boot) ---
+backend/.gradle/
+backend/build/
+backend/bin/
+backend/out/
+backend/HELP.md
+backend/src/main/resources/application.yml
 
-/postgres_data/
+# --- Frontend (Node/React) ---
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
 
-.gradle/
-build/
-.idea/
+# --- Security & DB (Root level) ---
+.env
+.env.local
+backend/postgres_data/
+
+# --- IDE (Global) ---
+backend/.idea/
 *.iml
+.vscode/
