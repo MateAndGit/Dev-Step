@@ -1,0 +1,18 @@
+spring:
+  application:
+    name: devstep-backend
+  profiles:
+    include: secret
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+  docker:
+    compose:
+      enabled: false
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
