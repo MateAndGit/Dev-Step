@@ -42,7 +42,10 @@ backend/build/
 backend/bin/
 backend/out/
 backend/HELP.md
-backend/src/main/resources/application.yml
+backend/src/main/resources/application-secret.yml
+backend/src/main/resources/*-secret.yml
+application-secret.yml
+*-secret.yml
 
 # --- Frontend (Node/React) ---
 node_modules/
