@@ -59,6 +59,7 @@ frontend/dist-ssr/
 backend/postgres_data/
 
 # --- IDE (Global) ---
+.idea/            
 backend/.idea/
 *.iml
 .vscode/
