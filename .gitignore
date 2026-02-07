@@ -59,6 +59,7 @@ frontend/dist-ssr/
 backend/postgres_data/
 
 # --- IDE (Global) ---
+.idea/             <-- (이거 한 줄 추가하면 루트 폴더의 설정도 다 막힙니다)
 backend/.idea/
 *.iml
 .vscode/
