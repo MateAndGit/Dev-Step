@@ -36,7 +36,7 @@ class UserServiceTest {
     UserRepository userRepository;
 
     @Test
-    @DisplayName("회원 등록 성공: 유저 정보를 저장하고 생성된 ID를 반환한다")
+    @DisplayName("should Save User and Return ID When Creation is Successful")
     void createUser_success() {
         // given
         RequestCreateUser request = new RequestCreateUser("test", "test@test.com", "1234");
@@ -59,7 +59,7 @@ class UserServiceTest {
 
 
     @Test
-    @DisplayName("이미 존재하는 닉네임으로 가입 시도 시 BusinessException이 발생한다")
+    @DisplayName("should Throw BusinessException When Nickname Already Exists")
     void createUser_fail_duplicateNickname() {
         // given
         RequestCreateUser request = createUser("test", "test@test.com", "1234");
@@ -75,7 +75,7 @@ class UserServiceTest {
     }
 
     @Test
-    @DisplayName("이미 존재하는 이메일로 가입 시도시 BusinessException이 발생한다.")
+    @DisplayName("should Throw BusinessException When Email Already Exists")
     void createUser_fail_duplicateEmail() {
         // given
         RequestCreateUser request = createUser("test", "test@test.com", "1234");
@@ -89,9 +89,9 @@ class UserServiceTest {
         assertThat(exception.getErrorCode()).isEqualTo(DUPLICATE_EMAIL);
         verify(userRepository, never()).save(any(User.class));
     }
-    
+
     @Test
-    @DisplayName("회원 등록 시도시 닉네임을 입력하지 않으면 BusinessException이 발생한다")
+    @DisplayName("should Throw BusinessException for Empty Nickname")
     void createUser_EmptyNickname() {
         // given
         RequestCreateUser request = createUser("", "test@test.com", "1234");
@@ -104,7 +104,7 @@ class UserServiceTest {
     }
 
     @Test
-    @DisplayName("회원 등록 시도시 금지된 닉네임을 입력하면 BusinessException이 발생한다")
+    @DisplayName("should Throw BusinessException for Banned Nickname")
     void creteUser_BANNED_NICKNAME() {
         // given
         RequestCreateUser request = createUser("Banned_words1", "test@test.com", "1234");
@@ -117,7 +117,7 @@ class UserServiceTest {
     }
 
     @Test
-    @DisplayName("회원 등록 시도시 이메일을 입력하지 않으면 BusinessException이 발생한다.")
+    @DisplayName("should Throw BusinessException for Empty Email")
     void createUser_EmptyEmail() {
         // given
         RequestCreateUser request = createUser("test", "", "1234");
@@ -131,14 +131,14 @@ class UserServiceTest {
 
     @ParameterizedTest
     @ValueSource(strings = {
-            "plainaddress",            // @ 없음
-            "#@%^%#$@#$@#.com",        // 특수문자 범벅
-            "@example.com",            // 아이디 없음
-            "Joe Smith <email@example.com>", // 이름 포함됨
-            "email.example.com",       // @ 없음
-            "email@example@example.com"// @ 중복
+            "plainaddress",
+            "#@%^%#$@#$@#.com",
+            "@example.com",
+            "Joe Smith <email@example.com>",
+            "email.example.com",
+            "email@example@example.com"
     })
-    @DisplayName("잘못된 형식의 이메일은 예외가 발생한다")
+    @DisplayName("should Throw BusinessException for Invalid Email Formats")
     void validateEmail_Fail_InvalidFormat(String invalidEmail) {
         assertThatThrownBy(() -> ValidationUtils.validateEmail(invalidEmail))
                 .isInstanceOf(BusinessException.class)
