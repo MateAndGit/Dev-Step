@@ -10,7 +10,12 @@ public enum ErrorCode {
     INTERNAL_SERVER_ERROR(500, "C003", "Server Error"),
 
     // User
-    USER_NOT_FOUND(404, "U001", "User not found");
+    USER_NOT_FOUND(404, "U001", "User not found"),
+    DUPLICATE_NICKNAME(409, "U002", "Duplicate Nickname"),
+    INVALID_NICKNAME_FORMAT(400, "U003", "Invalid Nickname Format"),
+    BANNED_NICKNAME(400, "U004", "Nickname contains inappropriate words"),
+    DUPLICATE_EMAIL(409, "U005", "Duplicate Email"),
+    INVALID_EMAIL_FORMAT(400, "U006", "Invalid Email Format");
 
     private final int status;
     private final String code;
