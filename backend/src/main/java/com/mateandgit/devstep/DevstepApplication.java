@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 public class DevstepApplication {
 
 	public static void main(String[] args) {
+		System.setProperty("user.timezone", "UTC");
 		SpringApplication.run(DevstepApplication.class, args);
 	}
 
