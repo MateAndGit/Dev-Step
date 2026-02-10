@@ -1,4 +1,4 @@
-package com.mateandgit.devstep.utils;
+package com.mateandgit.devstep.global.utils;
 
 import com.mateandgit.devstep.global.exception.BusinessException;
 import com.mateandgit.devstep.global.exception.ErrorCode;
