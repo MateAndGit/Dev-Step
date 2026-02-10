@@ -14,20 +14,16 @@ import static com.mateandgit.devstep.global.exception.ErrorCode.*;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
+@Transactional(readOnly = true)
 public class UserService {
 
     private final UserRepository userRepository;
 
+    @Transactional
     public Long createUser(UserCreateRequest request) {
 
-        if(userRepository.existsByNickname(request.nickname())) {
-            throw new BusinessException(DUPLICATE_NICKNAME);
-        }
-
-        if (userRepository.existsByEmail(request.email())) {
-            throw new BusinessException(DUPLICATE_EMAIL);
-        }
+        validateDuplicateNickname(request.nickname());
+        validateDuplicateEmail(request.email());
 
         User user = User.createUser(request.nickname(), request.email(), request.password());
         User savedUser = userRepository.save(user);
@@ -35,6 +31,7 @@ public class UserService {
         return savedUser.getId();
     }
 
+    @Transactional
     public UserUpdateResponse updateUser(Long userId, UserUpdateRequest request) {
 
         // TODO: Implement security check
@@ -48,24 +45,25 @@ public class UserService {
     }
 
     private void validateForUpdate(final User user, final UserUpdateRequest request) {
-        validateNicknameForUpdate(user, request.nickname());
-        validateEmailForUpdate(user, request.email());
+        user.isSameValueWhenUpdate(request);
+
+        if (user.isDifferentNickname(request.nickname())) {
+            validateDuplicateNickname(request.nickname());
+        }
+
+        if (user.isDifferentEmail(request.email())) {
+            validateDuplicateEmail(request.email());
+        }
     }
 
-    private void validateNicknameForUpdate(final User user, final String newNickname) {
-        if (user.getNickname().equals(newNickname)) {
-            return;
-        }
-        if (userRepository.existsByNickname(newNickname)) {
+    private void validateDuplicateNickname(String nickname) {
+        if(userRepository.existsByNickname(nickname)) {
             throw new BusinessException(DUPLICATE_NICKNAME);
         }
     }
 
-    private void validateEmailForUpdate(final User user, final String newEmail) {
-        if (user.getEmail().equals(newEmail)) {
-            return;
-        }
-        if (userRepository.existsByEmail(newEmail)) {
+    private void validateDuplicateEmail(String email) {
+        if(userRepository.existsByEmail(email)) {
             throw new BusinessException(DUPLICATE_EMAIL);
         }
     }

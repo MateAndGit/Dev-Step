@@ -15,7 +15,8 @@ public enum ErrorCode {
     INVALID_NICKNAME_FORMAT(400, "U003", "Invalid Nickname Format"),
     BANNED_NICKNAME(400, "U004", "Nickname contains inappropriate words"),
     DUPLICATE_EMAIL(409, "U005", "Duplicate Email"),
-    INVALID_EMAIL_FORMAT(400, "U006", "Invalid Email Format");
+    INVALID_EMAIL_FORMAT(400, "U006", "Invalid Email Format"),
+    USER_ALREADY_UPDATED(409, "U007", "User already updated");
 
     private final int status;
     private final String code;

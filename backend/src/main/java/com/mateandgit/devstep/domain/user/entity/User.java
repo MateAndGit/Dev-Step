@@ -1,5 +1,7 @@
 package com.mateandgit.devstep.domain.user.entity;
 
+import com.mateandgit.devstep.domain.user.dto.request.UserUpdateRequest;
+import com.mateandgit.devstep.global.exception.BusinessException;
 import com.mateandgit.devstep.global.utils.ValidationUtils;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
@@ -13,6 +15,8 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+
+import static com.mateandgit.devstep.global.exception.ErrorCode.USER_ALREADY_UPDATED;
 
 @Entity
 @EntityListeners(AuditingEntityListener.class)
@@ -64,5 +68,19 @@ public class User {
 
         this.nickname = nickname;
         this.email = email;
+    }
+
+    public void isSameValueWhenUpdate(UserUpdateRequest request) {
+        if (this.nickname.equals(request.nickname()) && this.email.equals(request.email())) {
+            throw new BusinessException(USER_ALREADY_UPDATED);
+        }
+    }
+
+    public boolean isDifferentNickname(String nickname) {
+        return this.nickname.equals(nickname) == false;
+    }
+
+    public boolean isDifferentEmail(String email) {
+        return this.email.equals(email) == false;
     }
 }
