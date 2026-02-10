@@ -1,6 +1,9 @@
-package com.mateandgit.devstep.user.entity;
+package com.mateandgit.devstep.domain.user.entity;
 
+import com.mateandgit.devstep.global.utils.ValidationUtils;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -38,17 +41,28 @@ public class User {
     private LocalDateTime updatedAt;
 
     @Builder
-    public User(String nickname, String email, String password) {
+    public User(final String nickname, final String email, final String password) {
         this.nickname = nickname;
         this.email = email;
         this.password = password;
     }
 
-    public static User createUser(String nickname, String email, String password) {
+    public static User createUser(final String nickname, final String email, final String password) {
+        ValidationUtils.validateNickname(nickname);
+        ValidationUtils.validateEmail(email);
+
         return User.builder()
                 .nickname(nickname)
                 .email(email)
                 .password(password)
                 .build();
+    }
+
+    public void update(final String nickname, final String email) {
+        ValidationUtils.validateNickname(nickname);
+        ValidationUtils.validateEmail(email);
+
+        this.nickname = nickname;
+        this.email = email;
     }
 }
