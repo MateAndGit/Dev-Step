@@ -1,12 +1,16 @@
 package com.mateandgit.devstep.domain.user.service;
 
 import com.mateandgit.devstep.domain.user.dto.request.UserCreateRequest;
+import com.mateandgit.devstep.domain.user.dto.request.UserSearchCondition;
 import com.mateandgit.devstep.domain.user.dto.request.UserUpdateRequest;
+import com.mateandgit.devstep.domain.user.dto.response.UserResponse;
 import com.mateandgit.devstep.domain.user.dto.response.UserUpdateResponse;
 import com.mateandgit.devstep.domain.user.entity.User;
 import com.mateandgit.devstep.domain.user.repository.UserRepository;
 import com.mateandgit.devstep.global.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,6 +35,32 @@ public class UserService {
         return savedUser.getId();
     }
 
+    public Page<UserResponse> getUserList(Long adminId, Pageable pageable,  UserSearchCondition condition) {
+
+        User admin = userRepository.findById(adminId)
+                .orElseThrow(() -> new BusinessException(USER_NOT_FOUND));
+
+        // TODO Implement checkAuthority
+
+        return userRepository.searchGetUser(pageable, condition);
+    }
+
+    public UserResponse getUser(Long userId) {
+
+        // TODO: Implement security check
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(USER_NOT_FOUND));
+
+        // TODO getUser 시 삭제된 유저인지 체크
+        if (user.isDeleted()) {
+            throw new BusinessException(USER_NOT_FOUND);
+        }
+
+        // TODO Implement checkAuthority
+
+        return UserResponse.from(user);
+    }
+
     @Transactional
     public UserUpdateResponse updateUser(Long userId, UserUpdateRequest request) {
 
@@ -42,6 +72,18 @@ public class UserService {
         user.update(request.nickname(), request.email());
 
         return UserUpdateResponse.from(user);
+    }
+
+    @Transactional
+    public Long deleteUser(Long userId) {
+
+        // TODO: Implement security check
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(USER_NOT_FOUND));
+
+        user.markAsDeleted();
+
+        return user.getId();
     }
 
     private void validateForUpdate(final User user, final UserUpdateRequest request) {

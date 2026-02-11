@@ -1,12 +1,14 @@
 package com.mateandgit.devstep.domain.user.service;
 
 import com.mateandgit.devstep.domain.user.dto.request.UserUpdateRequest;
+import com.mateandgit.devstep.domain.user.dto.response.UserResponse;
 import com.mateandgit.devstep.domain.user.dto.response.UserUpdateResponse;
 import com.mateandgit.devstep.global.exception.BusinessException;
 import com.mateandgit.devstep.global.exception.ErrorCode;
 import com.mateandgit.devstep.domain.user.dto.request.UserCreateRequest;
 import com.mateandgit.devstep.domain.user.entity.User;
 import com.mateandgit.devstep.domain.user.repository.UserRepository;
+import com.mateandgit.devstep.global.status.UserStatus;
 import com.mateandgit.devstep.global.utils.ValidationUtils;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -231,6 +233,53 @@ class UserServiceTest {
 
         assertThat(existingUser.getEmail()).isEqualTo("old@email.com");
     }
+
+    @Test
+    @DisplayName("should Throw BusinessException When User Not Found")
+    void deleteUser_fail_whenUserNotFound() {
+        // given
+        given(userRepository.findById(anyLong())).willReturn(Optional.empty());
+        // when & then
+        assertThrows(BusinessException.class, () -> {
+            userService.deleteUser(1L);
+        });
+    }
+
+    @Test
+    @DisplayName("should Update Nickname and Email When Successful")
+    void deleteUser_success() {
+        // given
+        final Long userId = 1L;
+        final User existingUser = new User("oldNickname", "old@email.com", "password123");
+        setField(existingUser, "id", userId);
+        given(userRepository.findById(userId)).willReturn(Optional.of(existingUser));
+
+        // when
+        userService.deleteUser(userId);
+
+        // then
+        assertThat(existingUser.isDeleted()).isTrue();
+        assertThat(existingUser.getStatus()).isEqualTo(UserStatus.DELETED);
+    }
+
+    @Test
+    @DisplayName("Should return UserResponse when a user exists with the given ID")
+    void getUser_success() {
+        // given
+        Long userId = 1L;
+        User user = User.createUser("nick", "test@test.com", "password123");
+        setField(user, "id", userId);
+        given(userRepository.findById(userId)).willReturn(Optional.of(user));
+
+        // when
+        UserResponse response = userService.getUser(userId);
+
+        // then
+        assertThat(response)
+                .extracting("id", "nickname", "email")
+                .containsExactly(userId, user.getNickname(), user.getEmail());
+    }
+    
 
     private UserCreateRequest createUser(String nickname, String email, String password) {
         return UserCreateRequest.builder()

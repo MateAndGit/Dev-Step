@@ -2,10 +2,9 @@ package com.mateandgit.devstep.domain.user.entity;
 
 import com.mateandgit.devstep.domain.user.dto.request.UserUpdateRequest;
 import com.mateandgit.devstep.global.exception.BusinessException;
+import com.mateandgit.devstep.global.status.UserStatus;
 import com.mateandgit.devstep.global.utils.ValidationUtils;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -17,6 +16,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.time.LocalDateTime;
 
 import static com.mateandgit.devstep.global.exception.ErrorCode.USER_ALREADY_UPDATED;
+import static com.mateandgit.devstep.global.status.UserStatus.ACTIVE;
+import static com.mateandgit.devstep.global.status.UserStatus.DELETED;
 
 @Entity
 @EntityListeners(AuditingEntityListener.class)
@@ -38,6 +39,13 @@ public class User {
     @Column(nullable = false)
     private String password;
 
+    @Column(nullable = false)
+    private boolean deleted;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private UserStatus status;
+
     @CreatedDate
     private LocalDateTime createdAt;
 
@@ -49,6 +57,8 @@ public class User {
         this.nickname = nickname;
         this.email = email;
         this.password = password;
+        this.deleted = false;
+        this.status = ACTIVE;
     }
 
     public static User createUser(final String nickname, final String email, final String password) {
@@ -82,5 +92,10 @@ public class User {
 
     public boolean isDifferentEmail(String email) {
         return this.email.equals(email) == false;
+    }
+
+    public void markAsDeleted() {
+        this.deleted = true;
+        this.status = DELETED;
     }
 }
