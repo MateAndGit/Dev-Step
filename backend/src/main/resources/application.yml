@@ -1,17 +1,29 @@
 spring:
+  output:
+    ansi:
+      enabled: always
+
   application:
     name: devstep-backend
+
   profiles:
     include: secret
 
   jpa:
     hibernate:
-      ddl-auto: update
-    show-sql: true
+      ddl-auto: create
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
 
   docker:
     compose:
       enabled: false
+
+logging:
+  level:
+    p6spy: info
 
 springdoc:
   swagger-ui:
