@@ -16,7 +16,11 @@ public enum ErrorCode {
     BANNED_NICKNAME(400, "U004", "Nickname contains inappropriate words"),
     DUPLICATE_EMAIL(409, "U005", "Duplicate Email"),
     INVALID_EMAIL_FORMAT(400, "U006", "Invalid Email Format"),
-    USER_ALREADY_UPDATED(409, "U007", "User already updated");
+    USER_ALREADY_UPDATED(409, "U007", "User already updated"),
+    INVALID_CREDENTIALS(401, "U008", "Invalid credentials"),
+    UNAUTHORIZED_ACCESS(403, "U009", "Unauthorized access"),
+    INVALID_TOKEN(401, "U010", "Invalid token"),
+    TOKEN_NOT_FOUND(404, "U011", "Token not found");
 
     private final int status;
     private final String code;
