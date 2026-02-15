@@ -1,15 +1,18 @@
 package com.mateandgit.devstep.domain.auth.controller;
 
-import com.mateandgit.devstep.domain.auth.dto.TokenResponse;
+import com.mateandgit.devstep.domain.auth.dto.request.AuthLoginRequest;
+import com.mateandgit.devstep.domain.auth.dto.request.AuthSignUpRequest;
+import com.mateandgit.devstep.domain.auth.dto.response.TokenResponse;
 import com.mateandgit.devstep.domain.auth.service.AuthService;
-import com.mateandgit.devstep.domain.user.dto.request.UserCreateRequest;
-import com.mateandgit.devstep.domain.user.dto.request.UserLoginRequest;
 import com.mateandgit.devstep.global.response.ApiResponse;
-import jakarta.servlet.http.HttpServletResponse;
+import com.mateandgit.devstep.global.security.CustomUserDetails;
+import com.mateandgit.devstep.global.utils.CookieUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import static org.springframework.http.HttpStatus.CREATED;
@@ -20,20 +23,23 @@ import static org.springframework.http.HttpStatus.CREATED;
 public class AuthController {
 
     private final AuthService authService;
+    private final CookieUtil cookieUtil;
 
-    @PostMapping()
-    public ResponseEntity<ApiResponse<Long>> register(@Valid @RequestBody final UserCreateRequest request) {
+    @PostMapping("/signUp")
+    public ResponseEntity<ApiResponse<Long>> signUp(@Valid @RequestBody final AuthSignUpRequest request) {
         return ResponseEntity.status(CREATED)
-                .body(ApiResponse.success(authService.createUser(request)));
+                .body(ApiResponse.success(authService.signUp(request)));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<String>> login(
-            @Valid @RequestBody UserLoginRequest request,
-            HttpServletResponse response) {
+    public ResponseEntity<ApiResponse<String>> login(@Valid @RequestBody AuthLoginRequest request) {
         TokenResponse tokenResponse = authService.login(request);
-        response.addHeader(HttpHeaders.SET_COOKIE, tokenResponse.cookie().toString());
-        return ResponseEntity.ok(ApiResponse.success(tokenResponse.accessToken()));
+
+        ResponseCookie cookie = cookieUtil.createRefreshTokenCookie(tokenResponse.refreshToken());
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .body(ApiResponse.success(tokenResponse.accessToken()));
     }
 
     @PostMapping("/reissue")
@@ -43,5 +49,15 @@ public class AuthController {
         String newAccessToken = authService.reissue(refreshToken);
 
         return ResponseEntity.ok(ApiResponse.success(newAccessToken));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse<Void>> logout(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        authService.logout(userDetails);
+        ResponseCookie emptyCookie = cookieUtil.createEmptyRefreshTokenCookie();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, emptyCookie.toString())
+                .body(ApiResponse.success(null));
     }
 }

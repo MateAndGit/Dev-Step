@@ -24,15 +24,12 @@ public class JwtTokenProvider {
             @Value("${jwt.access-token-expiration}") long accessTokenValidity,
             @Value("${jwt.refresh-token-expiration}") long refreshTokenValidity) {
 
-        // 변경: Decoders.BASE64.decode(secretKey) 대신 getBytes() 사용
         byte[] keyBytes = secretKey.getBytes(StandardCharsets.UTF_8);
         this.key = Keys.hmacShaKeyFor(keyBytes);
 
         this.accessTokenValidity = accessTokenValidity;
         this.refreshTokenValidity = refreshTokenValidity;
     }
-
-    // ... createAccessToken, createRefreshToken 등 나머지 로직은 동일
 
     public String createAccessToken(String userPk) {
         return createToken(userPk, accessTokenValidity);

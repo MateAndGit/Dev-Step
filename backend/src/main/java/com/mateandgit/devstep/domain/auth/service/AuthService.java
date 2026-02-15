@@ -1,18 +1,17 @@
 package com.mateandgit.devstep.domain.auth.service;
 
-import com.mateandgit.devstep.domain.auth.dto.TokenResponse;
+import com.mateandgit.devstep.domain.auth.dto.request.AuthLoginRequest;
+import com.mateandgit.devstep.domain.auth.dto.request.AuthSignUpRequest;
+import com.mateandgit.devstep.domain.auth.dto.response.TokenResponse;
 import com.mateandgit.devstep.domain.auth.entity.RefreshToken;
 import com.mateandgit.devstep.domain.auth.repository.RefreshTokenRepository;
-import com.mateandgit.devstep.domain.user.dto.request.UserCreateRequest;
-import com.mateandgit.devstep.domain.user.dto.request.UserLoginRequest;
 import com.mateandgit.devstep.domain.user.entity.User;
 import com.mateandgit.devstep.domain.user.repository.UserRepository;
 import com.mateandgit.devstep.global.exception.BusinessException;
+import com.mateandgit.devstep.global.security.CustomUserDetails;
 import com.mateandgit.devstep.global.security.JwtTokenProvider;
-import com.mateandgit.devstep.global.utils.CookieUtil;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseCookie;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,20 +25,16 @@ public class AuthService {
     private final UserRepository userRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final JwtTokenProvider jwtTokenProvider;
-    private final BCryptPasswordEncoder passwordEncoder;
-    private final CookieUtil cookieUtil;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional
-    public Long createUser(UserCreateRequest request) {
-
+    public Long signUp(AuthSignUpRequest request) {
         if(userRepository.existsByNickname(request.nickname())) {
             throw new BusinessException(DUPLICATE_NICKNAME);
         }
-
         if (userRepository.existsByEmail(request.email())) {
             throw new BusinessException(DUPLICATE_EMAIL);
         }
-
         String encodedPassword = passwordEncoder.encode(request.password());
         User user = User.createUser(request.nickname(), request.email(), encodedPassword);
         User savedUser = userRepository.save(user);
@@ -48,12 +43,13 @@ public class AuthService {
     }
 
     @Transactional
-    public TokenResponse login(UserLoginRequest request) {
-
+    public TokenResponse login(AuthLoginRequest request) {
         User user = userRepository.findByEmail(request.email())
                 .orElseThrow(() -> new BusinessException(USER_NOT_FOUND));
 
-        //TODO 비민번호 검증 ValidationUtils
+        if (!passwordEncoder.matches(request.password(), user.getPassword())) {
+            throw new BusinessException(INVALID_PASSWORD);
+        }
 
         String accessToken = jwtTokenProvider.createAccessToken(user.getEmail());
         String refreshToken = jwtTokenProvider.createRefreshToken(user.getEmail());
@@ -64,8 +60,7 @@ public class AuthService {
                         () -> refreshTokenRepository.save(new RefreshToken(refreshToken, user.getId()))
                 );
 
-        ResponseCookie cookie = cookieUtil.createRefreshTokenCookie(refreshToken, 604800000L);
-        return new TokenResponse(accessToken, cookie);
+        return new TokenResponse(accessToken, refreshToken);
     }
 
     public String reissue(String refreshTokenRequest) {
@@ -79,5 +74,11 @@ public class AuthService {
                 .orElseThrow(() -> new BusinessException(USER_NOT_FOUND));
 
         return jwtTokenProvider.createAccessToken(user.getEmail());
+    }
+
+    @Transactional
+    public void logout(CustomUserDetails userDetails) {
+        Long userId = userDetails.user().getId();
+        refreshTokenRepository.deleteByUserId(userId);
     }
 }

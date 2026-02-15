@@ -20,7 +20,8 @@ public enum ErrorCode {
     INVALID_CREDENTIALS(401, "U008", "Invalid credentials"),
     UNAUTHORIZED_ACCESS(403, "U009", "Unauthorized access"),
     INVALID_TOKEN(401, "U010", "Invalid token"),
-    TOKEN_NOT_FOUND(404, "U011", "Token not found");
+    TOKEN_NOT_FOUND(404, "U011", "Token not found"),
+    INVALID_PASSWORD(401, "U012", "Invalid password");
 
     private final int status;
     private final String code;
