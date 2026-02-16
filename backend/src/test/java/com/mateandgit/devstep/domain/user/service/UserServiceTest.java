@@ -1,29 +1,34 @@
 package com.mateandgit.devstep.domain.user.service;
 
-import com.mateandgit.devstep.domain.user.dto.request.UserCreateRequest;
+import com.mateandgit.devstep.domain.user.dto.request.UserSearchCondition;
 import com.mateandgit.devstep.domain.user.dto.request.UserUpdateRequest;
 import com.mateandgit.devstep.domain.user.dto.response.UserResponse;
 import com.mateandgit.devstep.domain.user.dto.response.UserUpdateResponse;
 import com.mateandgit.devstep.domain.user.entity.User;
 import com.mateandgit.devstep.domain.user.repository.UserRepository;
 import com.mateandgit.devstep.global.exception.BusinessException;
-import com.mateandgit.devstep.global.status.UserStatus;
+import com.mateandgit.devstep.global.security.CustomUserDetails;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
+import java.util.List;
 import java.util.Optional;
 
-import static com.mateandgit.devstep.global.exception.ErrorCode.*;
+import static com.mateandgit.devstep.global.exception.ErrorCode.UNAUTHORIZED_ACCESS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
@@ -36,93 +41,88 @@ class UserServiceTest {
     @Mock
     private UserRepository userRepository;
 
-    @Test
-    @DisplayName("Create User: Success")
-    void createUser_success() {
-        // given
-        UserCreateRequest request = new UserCreateRequest("tester", "test@example.com", "password123");
-        User mockUser = User.createUser(request.nickname(), request.email(), request.password());
-        setField(mockUser, "id", 1L);
+    private User testUser;
+    private CustomUserDetails userDetails;
 
-        given(userRepository.existsByNickname(request.nickname())).willReturn(false);
-        given(userRepository.existsByEmail(request.email())).willReturn(false);
-        given(userRepository.save(any(User.class))).willReturn(mockUser);
+    @BeforeEach
+    void setUp() {
+        testUser = User.createUser("nick", "test@test.com", "pw123");
+        setField(testUser, "id", 1L);
+        userDetails = new CustomUserDetails(testUser);
+    }
+
+    @Test
+    @DisplayName("Successfully get user profile by ID")
+    void getUser_Success() {
+        // given
+        given(userRepository.findByIdAndDeletedFalse(1L)).willReturn(Optional.of(testUser));
 
         // when
-        Long userId = userService.createUser(request);
+        UserResponse response = userService.getUser(1L, userDetails);
 
         // then
-        assertThat(userId).isEqualTo(1L);
-        verify(userRepository).save(any(User.class));
+        assertThat(response.nickname()).isEqualTo("nick");
+        verify(userRepository, times(1)).findByIdAndDeletedFalse(anyLong());
     }
 
     @Test
-    @DisplayName("Create User Fail: Duplicate Nickname")
-    void createUser_fail_duplicateNickname() {
+    @DisplayName("Successfully update own nickname and email")
+    void updateUser_Success() {
         // given
-        UserCreateRequest request = new UserCreateRequest("duplicate", "test@example.com", "pw");
-        given(userRepository.existsByNickname("duplicate")).willReturn(true);
-
-        // when & then
-        assertThatThrownBy(() -> userService.createUser(request))
-                .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", DUPLICATE_NICKNAME);
-
-        verify(userRepository, never()).save(any(User.class));
-    }
-
-    @Test
-    @DisplayName("Update User: Success")
-    void updateUser_success() {
-        // given
-        Long userId = 1L;
-        User user = User.createUser("oldNick", "old@email.com", "pw");
-        setField(user, "id", userId);
-
-        UserUpdateRequest updateRequest = new UserUpdateRequest("newNick", "new@email.com");
-
-        given(userRepository.findById(userId)).willReturn(Optional.of(user));
+        UserUpdateRequest request = new UserUpdateRequest("newNick", "new@test.com");
+        given(userRepository.findByIdAndDeletedFalse(1L)).willReturn(Optional.of(testUser));
         given(userRepository.existsByNickname("newNick")).willReturn(false);
-        given(userRepository.existsByEmail("new@email.com")).willReturn(false);
 
         // when
-        UserUpdateResponse response = userService.updateUser(userId, updateRequest);
+        UserUpdateResponse response = userService.updateUser(1L, request, userDetails);
 
         // then
         assertThat(response.nickname()).isEqualTo("newNick");
-        assertThat(user.getNickname()).isEqualTo("newNick");
+        assertThat(testUser.getEmail()).isEqualTo("new@test.com");
     }
 
     @Test
-    @DisplayName("Delete User: Success (Soft Delete)")
-    void deleteUser_success() {
+    @DisplayName("Fail to update user when target ID does not match current user")
+    void updateUser_Fail_Unauthorized() {
         // given
-        Long userId = 1L;
-        User user = User.createUser("user", "user@example.com", "pw");
-        given(userRepository.findById(userId)).willReturn(Optional.of(user));
+        UserUpdateRequest request = new UserUpdateRequest("hacker", "hacker@test.com");
+        Long targetUserId = 999L;
 
-        // when
-        userService.deleteUser(userId);
-
-        // then
-        assertThat(user.isDeleted()).isTrue();
-        assertThat(user.getStatus()).isEqualTo(UserStatus.DELETED);
+        // when & then
+        assertThatThrownBy(() -> userService.updateUser(targetUserId, request, userDetails))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining(UNAUTHORIZED_ACCESS.getMessage());
     }
 
     @Test
-    @DisplayName("Get User: Success")
-    void getUser_success() {
+    @DisplayName("Successfully mark user as deleted (Soft Delete)")
+    void deleteUser_Success() {
         // given
-        Long userId = 1L;
-        User user = User.createUser("tester", "test@example.com", "pw");
-        setField(user, "id", userId);
-        given(userRepository.findById(userId)).willReturn(Optional.of(user));
+        given(userRepository.findByIdAndDeletedFalse(1L)).willReturn(Optional.of(testUser));
 
         // when
-        UserResponse response = userService.getUser(userId);
+        Long deletedId = userService.deleteUser(1L, userDetails);
 
         // then
-        assertThat(response.nickname()).isEqualTo("tester");
-        assertThat(response.id()).isEqualTo(userId);
+        assertThat(deletedId).isEqualTo(1L);
+        assertThat(testUser.isDeleted()).isTrue();
+    }
+
+    @Test
+    @DisplayName("Successfully get list of users with pagination")
+    void getUserList_Success() {
+        // given
+        Pageable pageable = PageRequest.of(0, 10);
+        UserSearchCondition condition = new UserSearchCondition();
+        Page<UserResponse> expectedPage = new PageImpl<>(List.of(UserResponse.from(testUser)));
+
+        given(userRepository.searchGetUser(pageable, condition)).willReturn(expectedPage);
+
+        // when
+        Page<UserResponse> result = userService.getUserList(pageable, condition, userDetails);
+
+        // then
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).nickname()).isEqualTo("nick");
     }
 }

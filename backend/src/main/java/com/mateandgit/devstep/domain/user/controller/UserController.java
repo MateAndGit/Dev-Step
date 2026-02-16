@@ -24,14 +24,6 @@ public class UserController {
 
     private final UserService userService;
 
-    @GetMapping("/search")
-    public ResponseEntity<ApiResponse<Page<UserResponse>>> searchUser(
-            @ModelAttribute @Valid final UserSearchCondition condition,
-            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
-        return ResponseEntity.ok(ApiResponse.success(userService.getUserList(pageable, condition, userDetails)));
-    }
-
     @GetMapping("/{userId}")
     public ResponseEntity<ApiResponse<UserResponse>> getUser(
             @PathVariable final Long userId,
@@ -58,6 +50,14 @@ public class UserController {
     public ResponseEntity<ApiResponse<UserResponse>> getMyInfo(@AuthenticationPrincipal CustomUserDetails userDetails) {
         UserResponse response = userService.getMyInfo(userDetails);
         return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<Page<UserResponse>>> searchUser(
+            @ModelAttribute @Valid final UserSearchCondition condition,
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        return ResponseEntity.ok(ApiResponse.success(userService.getUserList(pageable, condition, userDetails)));
     }
 
 }

@@ -23,15 +23,6 @@ public class UserService {
 
     private final UserRepository userRepository;
 
-    public Page<UserResponse> getUserList(Pageable pageable, UserSearchCondition condition, CustomUserDetails userDetails) {
-        // TODO: 관리자 권한 체크 로직 (예: userDetails.getAuthorities() 확인)
-        return userRepository.searchGetUser(pageable, condition);
-    }
-
-    public UserResponse getMyInfo(CustomUserDetails userDetails) {
-        return UserResponse.from(userDetails.user());
-    }
-
     public UserResponse getUser(Long userId, CustomUserDetails userDetails) {
         User targetUser = userRepository.findByIdAndDeletedFalse(userId)
                 .orElseThrow(() -> new BusinessException(USER_NOT_FOUND));
@@ -70,6 +61,15 @@ public class UserService {
 
         targetUser.markAsDeleted();
         return targetUser.getId();
+    }
+
+    public UserResponse getMyInfo(CustomUserDetails userDetails) {
+        return UserResponse.from(userDetails.user());
+    }
+
+    public Page<UserResponse> getUserList(Pageable pageable, UserSearchCondition condition, CustomUserDetails userDetails) {
+        // TODO: 관리자 권한 체크 로직 (예: userDetails.getAuthorities() 확인)
+        return userRepository.searchGetUser(pageable, condition);
     }
 
     private void validateForUpdate(final User user, final UserUpdateRequest request) {
