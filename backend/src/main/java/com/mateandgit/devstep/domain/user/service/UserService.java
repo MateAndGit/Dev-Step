@@ -1,6 +1,5 @@
 package com.mateandgit.devstep.domain.user.service;
 
-import com.mateandgit.devstep.domain.user.dto.request.UserCreateRequest;
 import com.mateandgit.devstep.domain.user.dto.request.UserSearchCondition;
 import com.mateandgit.devstep.domain.user.dto.request.UserUpdateRequest;
 import com.mateandgit.devstep.domain.user.dto.response.UserResponse;
@@ -8,6 +7,7 @@ import com.mateandgit.devstep.domain.user.dto.response.UserUpdateResponse;
 import com.mateandgit.devstep.domain.user.entity.User;
 import com.mateandgit.devstep.domain.user.repository.UserRepository;
 import com.mateandgit.devstep.global.exception.BusinessException;
+import com.mateandgit.devstep.global.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -23,67 +23,53 @@ public class UserService {
 
     private final UserRepository userRepository;
 
+    public UserResponse getUser(Long userId, CustomUserDetails userDetails) {
+        User targetUser = userRepository.findByIdAndDeletedFalse(userId)
+                .orElseThrow(() -> new BusinessException(USER_NOT_FOUND));
+
+        // 추가적인 노출 제한 로직이 필요하다면 여기서 처리 (예: 비공개 계정 등)
+        return UserResponse.from(targetUser);
+    }
+
     @Transactional
-    public Long createUser(UserCreateRequest request) {
+    public UserUpdateResponse updateUser(Long userId, UserUpdateRequest request, CustomUserDetails userDetails) {
+        User currentUser = userDetails.user();
 
-        validateDuplicateNickname(request.nickname());
-        validateDuplicateEmail(request.email());
-
-        User user = User.createUser(request.nickname(), request.email(), request.password());
-        User savedUser = userRepository.save(user);
-
-        return savedUser.getId();
-    }
-
-    public Page<UserResponse> getUserList(Long adminId, Pageable pageable,  UserSearchCondition condition) {
-
-        User admin = userRepository.findById(adminId)
-                .orElseThrow(() -> new BusinessException(USER_NOT_FOUND));
-
-        // TODO Implement checkAuthority
-
-        return userRepository.searchGetUser(pageable, condition);
-    }
-
-    public UserResponse getUser(Long userId) {
-
-        // TODO: Implement security check
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new BusinessException(USER_NOT_FOUND));
-
-        // TODO getUser 시 삭제된 유저인지 체크
-        if (user.isDeleted()) {
-            throw new BusinessException(USER_NOT_FOUND);
+        if (!currentUser.getId().equals(userId)) {
+            throw new BusinessException(UNAUTHORIZED_ACCESS);
         }
 
-        // TODO Implement checkAuthority
+        User targetUser = userRepository.findByIdAndDeletedFalse(userId)
+                .orElseThrow(() -> new BusinessException(USER_NOT_FOUND));
 
-        return UserResponse.from(user);
+        validateForUpdate(targetUser, request);
+        targetUser.update(request.nickname(), request.email());
+
+        return UserUpdateResponse.from(targetUser);
     }
 
     @Transactional
-    public UserUpdateResponse updateUser(Long userId, UserUpdateRequest request) {
+    public Long deleteUser(Long userId, CustomUserDetails userDetails) {
+        User currentUser = userDetails.user();
 
-        // TODO: Implement security check
-        User user = userRepository.findById(userId)
+        if (!currentUser.getId().equals(userId)) {
+            throw new BusinessException(UNAUTHORIZED_ACCESS);
+        }
+
+        User targetUser = userRepository.findByIdAndDeletedFalse(userId)
                 .orElseThrow(() -> new BusinessException(USER_NOT_FOUND));
 
-        validateForUpdate(user, request);
-        user.update(request.nickname(), request.email());
-
-        return UserUpdateResponse.from(user);
+        targetUser.markAsDeleted();
+        return targetUser.getId();
     }
 
-    @Transactional
-    public Long deleteUser(Long userId) {
+    public UserResponse getMyInfo(CustomUserDetails userDetails) {
+        return UserResponse.from(userDetails.user());
+    }
 
-        // TODO: Implement security check
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new BusinessException(USER_NOT_FOUND));
-
-        user.markAsDeleted();
-
-        return user.getId();
+    public Page<UserResponse> getUserList(Pageable pageable, UserSearchCondition condition, CustomUserDetails userDetails) {
+        // TODO: 관리자 권한 체크 로직 (예: userDetails.getAuthorities() 확인)
+        return userRepository.searchGetUser(pageable, condition);
     }
 
     private void validateForUpdate(final User user, final UserUpdateRequest request) {
@@ -105,7 +91,7 @@ public class UserService {
     }
 
     private void validateDuplicateEmail(String email) {
-        if(userRepository.existsByEmail(email)) {
+        if(userRepository.existsByNickname(email)) {
             throw new BusinessException(DUPLICATE_EMAIL);
         }
     }

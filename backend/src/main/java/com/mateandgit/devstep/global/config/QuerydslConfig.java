@@ -1,4 +1,4 @@
-package com.mateandgit.devstep.config;
+package com.mateandgit.devstep.global.config;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;

@@ -1,4 +1,4 @@
-package com.mateandgit.devstep.config;
+package com.mateandgit.devstep.global.config;
 
 import com.p6spy.engine.spy.P6SpyOptions;
 import com.p6spy.engine.spy.appender.MessageFormattingStrategy;
