@@ -11,7 +11,6 @@ import com.mateandgit.devstep.global.security.CustomUserDetails;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.BDDMockito;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -23,8 +22,9 @@ import org.springframework.data.domain.Pageable;
 import java.util.List;
 import java.util.Optional;
 
-import static org.awaitility.Awaitility.given;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
@@ -90,4 +90,24 @@ class PostServiceTest {
                 () -> verify(postRepository, times(1)).searchGetPost(pageable, condition)
         );
     }
+
+    @Test
+    @DisplayName("")
+    void getPost_Success() {
+        // given
+        Long postId = 1L;
+        User author = User.createUser("nick", "test@test.com", "pw123");
+        Post post = Post.createPost("title", "content", author);
+        setField(post, "id", postId);
+        given(postRepository.findById(postId)).willReturn(Optional.of(post));
+
+        // when
+        PostResponse response = postService.getPost(postId);
+
+        // then
+        assertThat(response.title()).isEqualTo("title");
+        assertThat(response.content()).isEqualTo("content");
+        assertThat(response.authorNickname()).isEqualTo("nick");
+    }
+
 }

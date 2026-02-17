@@ -36,4 +36,10 @@ public class PostController {
         Page<PostResponse> postList = postService.getPostList(pageable, condition);
         return ResponseEntity.ok(ApiResponse.success(postList));
     }
+
+    @GetMapping("/{postId}")
+    public ResponseEntity<ApiResponse<PostResponse>> getPost(@PathVariable Long postId) {
+        PostResponse postResponse = postService.getPost(postId);
+        return ResponseEntity.ok(ApiResponse.success(postResponse));
+    }
 }

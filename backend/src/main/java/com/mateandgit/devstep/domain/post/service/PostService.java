@@ -15,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import static com.mateandgit.devstep.global.exception.ErrorCode.POST_NOT_FOUND;
 import static com.mateandgit.devstep.global.exception.ErrorCode.USER_NOT_FOUND;
 
 @Service
@@ -40,4 +41,13 @@ public class PostService {
     public Page<PostResponse> getPostList(Pageable pageable, PostSearchCondition condition) {
         return postRepository.searchGetPost(pageable, condition);
     }
+
+    public PostResponse getPost(Long postId) {
+
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new BusinessException(POST_NOT_FOUND));
+
+        return PostResponse.from(post);
+    }
+
 }
