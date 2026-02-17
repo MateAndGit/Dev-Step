@@ -2,10 +2,10 @@ package com.mateandgit.devstep.domain.post.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 
-public record PostCreateRequest(
-        @NotBlank(message = "Title is required")
+public record PostUpdateRequest(
+        @NotBlank(message = "title is required")
         String title,
-        @NotBlank(message = "Content is required")
+        @NotBlank(message = "content is required")
         String content
 ) {
 }

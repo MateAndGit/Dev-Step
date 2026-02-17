@@ -2,7 +2,9 @@ package com.mateandgit.devstep.domain.post.service;
 
 import com.mateandgit.devstep.domain.post.dto.request.PostCreateRequest;
 import com.mateandgit.devstep.domain.post.dto.request.PostSearchCondition;
+import com.mateandgit.devstep.domain.post.dto.request.PostUpdateRequest;
 import com.mateandgit.devstep.domain.post.dto.response.PostResponse;
+import com.mateandgit.devstep.domain.post.dto.response.PostUpdateResponse;
 import com.mateandgit.devstep.domain.post.entity.Post;
 import com.mateandgit.devstep.domain.post.repository.PostRepository;
 import com.mateandgit.devstep.domain.user.entity.User;
@@ -15,8 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import static com.mateandgit.devstep.global.exception.ErrorCode.POST_NOT_FOUND;
-import static com.mateandgit.devstep.global.exception.ErrorCode.USER_NOT_FOUND;
+import static com.mateandgit.devstep.global.exception.ErrorCode.*;
 
 @Service
 @RequiredArgsConstructor
@@ -50,4 +51,17 @@ public class PostService {
         return PostResponse.from(post);
     }
 
+    public PostUpdateResponse updatePost(Long postId, CustomUserDetails userDetails, PostUpdateRequest request) {
+
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new BusinessException(POST_NOT_FOUND));
+
+        if (!post.getAuthor().getId().equals(userDetails.user().getId())) {
+            throw new BusinessException(UNAUTHORIZED_ACCESS);
+        }
+
+        Post updatedPost = Post.updatePost(request.title(), request.content());
+
+        return PostUpdateResponse.from(updatedPost);
+    }
 }

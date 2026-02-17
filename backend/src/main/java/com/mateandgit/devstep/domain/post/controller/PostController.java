@@ -2,7 +2,9 @@ package com.mateandgit.devstep.domain.post.controller;
 
 import com.mateandgit.devstep.domain.post.dto.request.PostCreateRequest;
 import com.mateandgit.devstep.domain.post.dto.request.PostSearchCondition;
+import com.mateandgit.devstep.domain.post.dto.request.PostUpdateRequest;
 import com.mateandgit.devstep.domain.post.dto.response.PostResponse;
+import com.mateandgit.devstep.domain.post.dto.response.PostUpdateResponse;
 import com.mateandgit.devstep.domain.post.service.PostService;
 import com.mateandgit.devstep.global.response.ApiResponse;
 import com.mateandgit.devstep.global.security.CustomUserDetails;
@@ -41,5 +43,14 @@ public class PostController {
     public ResponseEntity<ApiResponse<PostResponse>> getPost(@PathVariable Long postId) {
         PostResponse postResponse = postService.getPost(postId);
         return ResponseEntity.ok(ApiResponse.success(postResponse));
+    }
+
+    @PutMapping("/{postId}")
+    public ResponseEntity<ApiResponse<PostUpdateResponse>> updatePost(
+            @PathVariable Long postId,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @Valid @RequestBody PostUpdateRequest request) {
+        PostUpdateResponse postUpdateResponse = postService.updatePost(postId, userDetails, request);
+        return ResponseEntity.ok(ApiResponse.success(postUpdateResponse));
     }
 }

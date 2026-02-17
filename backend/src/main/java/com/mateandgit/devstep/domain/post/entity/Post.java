@@ -57,4 +57,12 @@ public class Post {
                 .author(author)
                 .build();
     }
+
+    public static Post updatePost(String title, String content) {
+        ValidationUtils.validatePostCreateRequest(title, content);
+        return Post.builder()
+                .title(title)
+                .content(content)
+                .build();
+    }
 }

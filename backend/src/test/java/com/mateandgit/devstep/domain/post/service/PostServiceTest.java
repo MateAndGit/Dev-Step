@@ -2,7 +2,9 @@ package com.mateandgit.devstep.domain.post.service;
 
 import com.mateandgit.devstep.domain.post.dto.request.PostCreateRequest;
 import com.mateandgit.devstep.domain.post.dto.request.PostSearchCondition;
+import com.mateandgit.devstep.domain.post.dto.request.PostUpdateRequest;
 import com.mateandgit.devstep.domain.post.dto.response.PostResponse;
+import com.mateandgit.devstep.domain.post.dto.response.PostUpdateResponse;
 import com.mateandgit.devstep.domain.post.entity.Post;
 import com.mateandgit.devstep.domain.post.repository.PostRepository;
 import com.mateandgit.devstep.domain.user.entity.User;
@@ -108,6 +110,29 @@ class PostServiceTest {
         assertThat(response.title()).isEqualTo("title");
         assertThat(response.content()).isEqualTo("content");
         assertThat(response.authorNickname()).isEqualTo("nick");
+    }
+
+    @Test
+    @DisplayName("")
+    void updatePost_Success() {
+        // given
+        User author = User.createUser("nick", "test@test.com", "pw123");
+        setField(author, "id", 1L);
+        CustomUserDetails userDetails = new CustomUserDetails(author);
+
+        Long postId = 1L;
+        Post post = Post.createPost("title", "content", author);
+        setField(post,"id", postId);
+        given(postRepository.findById(postId)).willReturn(Optional.of(post));
+
+        PostUpdateRequest request = new PostUpdateRequest("newTitle", "newContent");
+
+        // when
+        PostUpdateResponse response = postService.updatePost(postId, userDetails, request);
+
+        // then
+        assertThat(response.title()).isEqualTo("newTitle");
+        assertThat(response.content()).isEqualTo("newContent");
     }
 
 }
