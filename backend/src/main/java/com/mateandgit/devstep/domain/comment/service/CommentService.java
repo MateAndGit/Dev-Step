@@ -5,7 +5,6 @@ import com.mateandgit.devstep.domain.comment.entity.Comment;
 import com.mateandgit.devstep.domain.comment.repository.CommentRepository;
 import com.mateandgit.devstep.domain.post.entity.Post;
 import com.mateandgit.devstep.domain.post.repository.PostRepository;
-import com.mateandgit.devstep.domain.user.entity.User;
 import com.mateandgit.devstep.global.exception.BusinessException;
 import com.mateandgit.devstep.global.exception.ErrorCode;
 import com.mateandgit.devstep.global.security.CustomUserDetails;
@@ -13,17 +12,16 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import static com.mateandgit.devstep.global.exception.ErrorCode.POST_NOT_FOUND;
+import static com.mateandgit.devstep.global.exception.ErrorCode.*;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
+@Transactional
 public class CommentService {
 
     private final CommentRepository commentRepository;
     private final PostRepository postRepository;
 
-    @Transactional
     public Long createComment(Long postId, CommentCreateRequest request, CustomUserDetails userDetails) {
 
         Post post = postRepository.findById(postId)
@@ -33,7 +31,7 @@ public class CommentService {
 
         if (request.parentId() != null) {
             parentComment = commentRepository.findById(request.parentId())
-                    .orElseThrow(() -> new BusinessException(ErrorCode.COMMENT_NOT_FOUND));
+                    .orElseThrow(() -> new BusinessException(COMMENT_NOT_FOUND));
 
             if (parentComment.getParentComment() != null) {
                 throw new BusinessException(ErrorCode.INVALID_COMMENT_DEPTH);
@@ -52,4 +50,22 @@ public class CommentService {
         return savedComment.getId();
     }
 
+    public void updateComment(Long postId, Long commentId, CommentCreateRequest request, CustomUserDetails userDetails) {
+
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new BusinessException(POST_NOT_FOUND));
+
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new BusinessException(COMMENT_NOT_FOUND));
+
+        if (!comment.getPost().getId().equals(post.getId())){
+            throw new BusinessException(POST_NOT_FOUND);
+        }
+
+        if (!comment.getAuthor().equals(userDetails.user())) {
+            throw new BusinessException(UNAUTHORIZED_ACCESS);
+        }
+
+        comment.updateContent(request.content());
+    }
 }

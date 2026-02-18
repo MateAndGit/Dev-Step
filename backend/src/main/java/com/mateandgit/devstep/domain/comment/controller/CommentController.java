@@ -11,18 +11,29 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/comments")
+@RequestMapping("/api/v1/posts/")
 @RequiredArgsConstructor
 public class CommentController {
 
     private final CommentService commentService;
 
-    @PostMapping("/{postId}")
+    @PostMapping("/{postId}/comments")
     public ResponseEntity<ApiResponse<Long>> createComment(
             @PathVariable Long postId,
             @Valid @RequestBody CommentCreateRequest request,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long savedCommentId = commentService.createComment(postId, request, userDetails);
         return ResponseEntity.ok(ApiResponse.success(savedCommentId));
+    }
+
+    @PutMapping("/{postId}/comments/{commentId}")
+    public ResponseEntity<ApiResponse<Void>> updateComment(
+            @PathVariable Long postId,
+            @PathVariable Long commentId,
+            @Valid @RequestBody CommentCreateRequest request,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        commentService.updateComment(postId, commentId, request, userDetails);
+        return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

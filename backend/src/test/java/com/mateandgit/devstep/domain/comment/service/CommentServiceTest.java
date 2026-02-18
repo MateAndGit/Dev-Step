@@ -91,6 +91,32 @@ class CommentServiceTest {
         verify(commentRepository, never()).save(any(Comment.class));
     }
 
+    @Test
+    @DisplayName("댓글 수정 성공: 작성자가 본인의 댓글을 수정하면 내용이 변경된다")
+    void updateComment_Success() {
+        // given
+        Long postId = 1L;
+        Long commentId = 100L;
+        User author = createMockUser(1L, "nickname");
+        Post post = createMockPost(postId, author);
+
+        CustomUserDetails userDetails = new CustomUserDetails(author);
+
+        Comment existingComment = createMockComment(commentId, "old content", author, post, null);
+
+        given(postRepository.findById(postId)).willReturn(Optional.of(post));
+        given(commentRepository.findById(commentId)).willReturn(Optional.of(existingComment));
+
+        CommentCreateRequest request = new CommentCreateRequest(null, "updated content");
+
+        // when
+        commentService.updateComment(postId, commentId, request, userDetails);
+
+        // then
+        assertThat(existingComment.getContent()).isEqualTo("updated content");
+        verify(commentRepository, times(1)).findById(commentId);
+    }
+
     private User createMockUser(Long id, String nickname) {
         User user = User.createUser(nickname, nickname + "@test.com", "password");
         setField(user, "id", id);

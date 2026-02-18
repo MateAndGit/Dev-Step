@@ -44,15 +44,6 @@ public class Comment {
     @OneToMany(mappedBy = "parentComment", cascade = CascadeType.ALL)
     private List<Comment> childComments = new ArrayList<>();
 
-    public void addReply(Comment child) {
-        this.childComments.add(child);
-        child.setParent(this);
-    }
-
-    private void setParent(Comment parent) {
-        this.parentComment = parent;
-    }
-
     @CreatedDate
     private LocalDateTime createdAt;
 
@@ -76,5 +67,10 @@ public class Comment {
                 .post(post)
                 .parentComment(parentComment)
                 .build();
+    }
+
+    public void updateContent(String content) {
+        ValidationUtils.validateCommentCreateRequest(content);
+        this.content = content;
     }
 }
