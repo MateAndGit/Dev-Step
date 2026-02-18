@@ -21,6 +21,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -46,7 +47,7 @@ class PostServiceTest {
     public PostRepository postRepository;
 
     @Test
-    @DisplayName("게시글 생성 성공")
+    @DisplayName("Should create a post when valid request is provided")
     void createPost_Success() {
         // given
         User author = User.createUser("nick", "test@test.com", "pw123");
@@ -68,15 +69,15 @@ class PostServiceTest {
     }
 
     @Test
-    @DisplayName("게시글 목록 조회 - 성공")
+    @DisplayName("Should return a paged list of posts based on search criteria")
     void getPostList_Success() {
         // given
         Pageable pageable = PageRequest.of(0, 10);
         PostSearchCondition condition = new PostSearchCondition("title", "content", "author");
 
         List<PostResponse> content = List.of(
-                new PostResponse(1L, "title1", "content1", "user1"),
-                new PostResponse(2L, "title2", "content2", "user2")
+                new PostResponse(1L, "title1", "content1", "user1", LocalDateTime.now()),
+                new PostResponse(2L, "title2", "content2", "user2", LocalDateTime.now())
         );
         Page<PostResponse> expectedPage = new PageImpl<>(content, pageable, content.size());
 
@@ -94,7 +95,7 @@ class PostServiceTest {
     }
 
     @Test
-    @DisplayName("")
+    @DisplayName("Should return a post response when valid post id is provided")
     void getPost_Success() {
         // given
         Long postId = 1L;
@@ -113,7 +114,7 @@ class PostServiceTest {
     }
 
     @Test
-    @DisplayName("")
+    @DisplayName("Should update a post when valid request is provided")
     void updatePost_Success() {
         // given
         User author = User.createUser("nick", "test@test.com", "pw123");
@@ -133,6 +134,26 @@ class PostServiceTest {
         // then
         assertThat(response.title()).isEqualTo("newTitle");
         assertThat(response.content()).isEqualTo("newContent");
+    }
+
+    @Test
+    @DisplayName("Should delete a post when valid post id is provided")
+    void deletePost_Success() {
+        // given
+        User author = User.createUser("nick", "test@test.com", "pw123");
+        setField(author, "id", 1L);
+        CustomUserDetails userDetails = new CustomUserDetails(author);
+
+        Long postId = 1L;
+        Post post = Post.createPost("title", "content", author);
+        setField(post,"id", postId);
+        given(postRepository.findById(postId)).willReturn(Optional.of(post));
+
+        // when
+        postService.deletePost(postId, userDetails);
+
+        // then
+        verify(postRepository, times(1)).delete(post);
     }
 
 }

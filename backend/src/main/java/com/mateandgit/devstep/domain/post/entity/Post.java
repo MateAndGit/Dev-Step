@@ -3,6 +3,7 @@ package com.mateandgit.devstep.domain.post.entity;
 import com.mateandgit.devstep.domain.user.entity.User;
 import com.mateandgit.devstep.global.utils.ValidationUtils;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -58,11 +59,9 @@ public class Post {
                 .build();
     }
 
-    public static Post updatePost(String title, String content) {
-        ValidationUtils.validatePostCreateRequest(title, content);
-        return Post.builder()
-                .title(title)
-                .content(content)
-                .build();
+
+    public void updatePost(String title,String content) {
+        this.title = title;
+        this.content = content;
     }
 }

@@ -51,6 +51,7 @@ public class PostService {
         return PostResponse.from(post);
     }
 
+    @Transactional
     public PostUpdateResponse updatePost(Long postId, CustomUserDetails userDetails, PostUpdateRequest request) {
 
         Post post = postRepository.findById(postId)
@@ -60,8 +61,21 @@ public class PostService {
             throw new BusinessException(UNAUTHORIZED_ACCESS);
         }
 
-        Post updatedPost = Post.updatePost(request.title(), request.content());
+        post.updatePost(request.title(), request.content());
 
-        return PostUpdateResponse.from(updatedPost);
+        return PostUpdateResponse.from(post);
+    }
+
+    @Transactional
+    public void deletePost(Long postId, CustomUserDetails userDetails) {
+
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new BusinessException(POST_NOT_FOUND));
+
+        if (!post.getAuthor().getId().equals(userDetails.user().getId())) {
+            throw new BusinessException(UNAUTHORIZED_ACCESS);
+        }
+
+        postRepository.delete(post);
     }
 }
