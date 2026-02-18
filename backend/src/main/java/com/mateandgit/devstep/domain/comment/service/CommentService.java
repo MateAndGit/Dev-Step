@@ -68,4 +68,23 @@ public class CommentService {
 
         comment.updateContent(request.content());
     }
+
+    public void deleteComment(Long postId, Long commentId, CustomUserDetails userDetails) {
+
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new BusinessException(POST_NOT_FOUND));
+
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new BusinessException(COMMENT_NOT_FOUND));
+
+        if (!comment.getPost().getId().equals(post.getId())){
+            throw new BusinessException(POST_NOT_FOUND);
+        }
+
+        if (!comment.getAuthor().equals(userDetails.user())) {
+            throw new BusinessException(UNAUTHORIZED_ACCESS);
+        }
+
+        commentRepository.delete(comment);
+    }
 }

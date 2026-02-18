@@ -117,6 +117,29 @@ class CommentServiceTest {
         verify(commentRepository, times(1)).findById(commentId);
     }
 
+    @Test
+    @DisplayName("")
+    void deleteComment_Success() {
+        // given
+        Long postId = 1L;
+        Long commentId = 100L;
+        User author = createMockUser(1L, "nickname");
+        Post post = createMockPost(postId, author);
+
+        CustomUserDetails userDetails = new CustomUserDetails(author);
+
+        Comment existingComment = createMockComment(commentId, "old content", author, post, null);
+
+        given(postRepository.findById(postId)).willReturn(Optional.of(post));
+        given(commentRepository.findById(commentId)).willReturn(Optional.of(existingComment));
+
+        // when
+        commentService.deleteComment(postId, commentId, userDetails);
+
+        // then
+        verify(commentRepository, times(1)).delete(existingComment);
+    }
+
     private User createMockUser(Long id, String nickname) {
         User user = User.createUser(nickname, nickname + "@test.com", "password");
         setField(user, "id", id);
