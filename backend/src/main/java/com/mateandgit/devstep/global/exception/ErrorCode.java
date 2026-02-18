@@ -21,7 +21,10 @@ public enum ErrorCode {
     UNAUTHORIZED_ACCESS(403, "U009", "Unauthorized access"),
     INVALID_TOKEN(401, "U010", "Invalid token"),
     TOKEN_NOT_FOUND(404, "U011", "Token not found"),
-    INVALID_PASSWORD(401, "U012", "Invalid password");
+    INVALID_PASSWORD(401, "U012", "Invalid password"),
+
+    // Post
+    POST_NOT_FOUND(404, "P001", "Post not found");
 
     private final int status;
     private final String code;

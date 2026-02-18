@@ -44,4 +44,7 @@ public class ValidationUtils {
 
     }
 
+    // TODO validatePostCreateRequest
+    public static void validatePostCreateRequest(String title, String content) {
+    }
 }
