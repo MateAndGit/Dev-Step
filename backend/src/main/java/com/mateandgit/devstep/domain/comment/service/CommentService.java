@@ -29,10 +29,27 @@ public class CommentService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new BusinessException(POST_NOT_FOUND));
 
-        Comment comment = Comment.createComment(request.content(), userDetails.user(), post);
+        Comment parentComment = null;
+
+        if (request.parentId() != null) {
+            parentComment = commentRepository.findById(request.parentId())
+                    .orElseThrow(() -> new BusinessException(ErrorCode.COMMENT_NOT_FOUND));
+
+            if (parentComment.getParentComment() != null) {
+                throw new BusinessException(ErrorCode.INVALID_COMMENT_DEPTH);
+            }
+        }
+
+        Comment comment = Comment.createComment(
+                request.content(),
+                userDetails.user(),
+                post,
+                parentComment
+        );
 
         Comment savedComment = commentRepository.save(comment);
 
         return savedComment.getId();
     }
+
 }

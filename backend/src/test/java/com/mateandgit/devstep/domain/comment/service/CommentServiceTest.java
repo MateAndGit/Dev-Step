@@ -6,7 +6,7 @@ import com.mateandgit.devstep.domain.comment.repository.CommentRepository;
 import com.mateandgit.devstep.domain.post.entity.Post;
 import com.mateandgit.devstep.domain.post.repository.PostRepository;
 import com.mateandgit.devstep.domain.user.entity.User;
-import com.mateandgit.devstep.domain.user.repository.UserRepository;
+import com.mateandgit.devstep.global.exception.BusinessException;
 import com.mateandgit.devstep.global.security.CustomUserDetails;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -14,16 +14,15 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Optional;
 
-import static com.mateandgit.devstep.domain.post.entity.QPost.post;
+import static com.mateandgit.devstep.global.exception.ErrorCode.INVALID_COMMENT_DEPTH;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 
@@ -48,11 +47,13 @@ class CommentServiceTest {
         Post post = createMockPost(postId, author);
 
         CustomUserDetails userDetails = new CustomUserDetails(author);
-        CommentCreateRequest request = new CommentCreateRequest("This is a comment");
+        // request의 parentId는 null (일반 댓글)
+        CommentCreateRequest request = new CommentCreateRequest(null, "This is a comment");
 
         given(postRepository.findById(postId)).willReturn(Optional.of(post));
 
-        Comment savedComment = Comment.createComment(request.content(), author, post);
+        // 엔티티 생성 메서드에도 null(부모 없음)을 명시
+        Comment savedComment = Comment.createComment(request.content(), author, post, null);
         setField(savedComment, "id", 100L);
         given(commentRepository.save(any(Comment.class))).willReturn(savedComment);
 
@@ -63,6 +64,31 @@ class CommentServiceTest {
         assertThat(savedCommentId).isEqualTo(100L);
         verify(postRepository, times(1)).findById(postId);
         verify(commentRepository, times(1)).save(any(Comment.class));
+    }
+
+    @Test
+    @DisplayName("댓글 작성 실패: 대댓글에 다시 대댓글을 달려고 하면 예외가 발생한다")
+    void createComment_Fail_InvalidDepth() {
+        // given
+        Long postId = 1L;
+        User author = createMockUser(10L, "testUser");
+        Post post = createMockPost(postId, author);
+
+        Comment grandParent = createMockComment(99L, "할아버지 댓글", author, post, null);
+        Comment parent = createMockComment(100L, "아버지 댓글(대댓글)", author, post, grandParent);
+
+        CustomUserDetails userDetails = new CustomUserDetails(author);
+        CommentCreateRequest request = new CommentCreateRequest(100L,"손자 댓글 시도");
+
+        given(postRepository.findById(postId)).willReturn(Optional.of(post));
+        given(commentRepository.findById(100L)).willReturn(Optional.of(parent));
+
+        // when & then
+        assertThatThrownBy(() -> commentService.createComment(postId, request, userDetails))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", INVALID_COMMENT_DEPTH);
+
+        verify(commentRepository, never()).save(any(Comment.class));
     }
 
     private User createMockUser(Long id, String nickname) {
@@ -76,4 +102,11 @@ class CommentServiceTest {
         setField(post, "id", id);
         return post;
     }
+
+    private Comment createMockComment(Long id, String content, User author, Post post, Comment parent) {
+        Comment comment = Comment.createComment(content, author, post, parent);
+        setField(comment, "id", id);
+        return comment;
+    }
+
 }

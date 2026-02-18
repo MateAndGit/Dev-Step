@@ -13,6 +13,8 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -35,6 +37,22 @@ public class Comment {
     @JoinColumn(name = "post_id", nullable = false)
     private Post post;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_comment_id")
+    private Comment parentComment;
+
+    @OneToMany(mappedBy = "parentComment", cascade = CascadeType.ALL)
+    private List<Comment> childComments = new ArrayList<>();
+
+    public void addReply(Comment child) {
+        this.childComments.add(child);
+        child.setParent(this);
+    }
+
+    private void setParent(Comment parent) {
+        this.parentComment = parent;
+    }
+
     @CreatedDate
     private LocalDateTime createdAt;
 
@@ -42,19 +60,21 @@ public class Comment {
     private LocalDateTime updatedAt;
 
     @Builder
-    public Comment(String content, User author, Post post) {
+    public Comment(String content, User author, Post post, Comment parentComment) {
         this.content = content;
         this.author = author;
         this.post = post;
+        this.parentComment = parentComment;
     }
 
-    public static Comment createComment(String content, User author, Post post) {
+    public static Comment createComment(String content, User author, Post post, Comment parentComment) {
         ValidationUtils.validateCommentCreateRequest(content);
 
         return Comment.builder()
                 .content(content)
                 .author(author)
                 .post(post)
+                .parentComment(parentComment)
                 .build();
     }
 }
