@@ -1,6 +1,7 @@
 package com.mateandgit.devstep.domain.comment.controller;
 
 import com.mateandgit.devstep.domain.comment.dto.request.CommentCreateRequest;
+import com.mateandgit.devstep.domain.comment.dto.request.CommentUpdateRequest;
 import com.mateandgit.devstep.domain.comment.service.CommentService;
 import com.mateandgit.devstep.global.response.ApiResponse;
 import com.mateandgit.devstep.global.security.CustomUserDetails;
@@ -11,7 +12,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/posts/")
+@RequestMapping("/api/v1/posts")
 @RequiredArgsConstructor
 public class CommentController {
 
@@ -30,7 +31,7 @@ public class CommentController {
     public ResponseEntity<ApiResponse<Void>> updateComment(
             @PathVariable Long postId,
             @PathVariable Long commentId,
-            @Valid @RequestBody CommentCreateRequest request,
+            @Valid @RequestBody CommentUpdateRequest request,
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
         commentService.updateComment(postId, commentId, request, userDetails);

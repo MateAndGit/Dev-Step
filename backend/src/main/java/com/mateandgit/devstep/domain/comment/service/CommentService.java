@@ -1,6 +1,7 @@
 package com.mateandgit.devstep.domain.comment.service;
 
 import com.mateandgit.devstep.domain.comment.dto.request.CommentCreateRequest;
+import com.mateandgit.devstep.domain.comment.dto.request.CommentUpdateRequest;
 import com.mateandgit.devstep.domain.comment.entity.Comment;
 import com.mateandgit.devstep.domain.comment.repository.CommentRepository;
 import com.mateandgit.devstep.domain.post.entity.Post;
@@ -46,11 +47,12 @@ public class CommentService {
         );
 
         Comment savedComment = commentRepository.save(comment);
+        post.addComment(savedComment);
 
         return savedComment.getId();
     }
 
-    public void updateComment(Long postId, Long commentId, CommentCreateRequest request, CustomUserDetails userDetails) {
+    public void updateComment(Long postId, Long commentId, CommentUpdateRequest request, CustomUserDetails userDetails) {
 
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new BusinessException(POST_NOT_FOUND));
@@ -62,7 +64,7 @@ public class CommentService {
             throw new BusinessException(POST_NOT_FOUND);
         }
 
-        if (!comment.getAuthor().equals(userDetails.user())) {
+        if (!comment.getAuthor().getId().equals(userDetails.user().getId())) {
             throw new BusinessException(UNAUTHORIZED_ACCESS);
         }
 
@@ -81,7 +83,7 @@ public class CommentService {
             throw new BusinessException(POST_NOT_FOUND);
         }
 
-        if (!comment.getAuthor().equals(userDetails.user())) {
+        if (!comment.getAuthor().getId().equals(userDetails.user().getId())) {
             throw new BusinessException(UNAUTHORIZED_ACCESS);
         }
 

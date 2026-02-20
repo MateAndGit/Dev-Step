@@ -1,5 +1,6 @@
 package com.mateandgit.devstep.domain.post.entity;
 
+import com.mateandgit.devstep.domain.comment.entity.Comment;
 import com.mateandgit.devstep.domain.user.entity.User;
 import com.mateandgit.devstep.global.utils.ValidationUtils;
 import jakarta.persistence.*;
@@ -13,6 +14,8 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -36,6 +39,9 @@ public class Post {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User author;
+
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
+    private List<Comment> comments = new ArrayList<>();
 
     @CreatedDate
     private LocalDateTime createdAt;
@@ -63,5 +69,9 @@ public class Post {
     public void updatePost(String title,String content) {
         this.title = title;
         this.content = content;
+    }
+
+    public void addComment(Comment savedComment) {
+        comments.add(savedComment);
     }
 }

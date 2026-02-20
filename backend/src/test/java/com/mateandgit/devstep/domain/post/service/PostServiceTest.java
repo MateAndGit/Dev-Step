@@ -76,8 +76,8 @@ class PostServiceTest {
         PostSearchCondition condition = new PostSearchCondition("title", "content", "author");
 
         List<PostResponse> content = List.of(
-                new PostResponse(1L, "title1", "content1", "user1", LocalDateTime.now()),
-                new PostResponse(2L, "title2", "content2", "user2", LocalDateTime.now())
+                new PostResponse(1L, "title1", "content1", "user1", LocalDateTime.now(), List.of()),
+                new PostResponse(2L, "title2", "content2", "user2", LocalDateTime.now(), List.of())
         );
         Page<PostResponse> expectedPage = new PageImpl<>(content, pageable, content.size());
 
