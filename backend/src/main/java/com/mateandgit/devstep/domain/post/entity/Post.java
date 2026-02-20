@@ -33,8 +33,7 @@ public class Post {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
-    @Column(nullable = false)
-    private Long viewCount = 0L;
+    private long likeCount = 0L;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -65,7 +64,6 @@ public class Post {
                 .build();
     }
 
-
     public void updatePost(String title,String content) {
         this.title = title;
         this.content = content;
@@ -73,5 +71,9 @@ public class Post {
 
     public void addComment(Comment savedComment) {
         comments.add(savedComment);
+    }
+
+    public void increaseLikeCount() {
+        this.likeCount++;
     }
 }
