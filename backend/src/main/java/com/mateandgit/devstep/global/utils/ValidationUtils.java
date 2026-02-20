@@ -47,4 +47,8 @@ public class ValidationUtils {
     // TODO validatePostCreateRequest
     public static void validatePostCreateRequest(String title, String content) {
     }
+
+    // TODO validateCommentCreateRequest
+    public static void validateCommentCreateRequest(String content) {
+    }
 }

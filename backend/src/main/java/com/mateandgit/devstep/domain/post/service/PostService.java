@@ -43,6 +43,7 @@ public class PostService {
         return postRepository.searchGetPost(pageable, condition);
     }
 
+    // TODO: Fetch Join이나 EntityGraph 적용해서 Post 조회 시 Comment와 Author 한 번에 가져오기
     public PostResponse getPost(Long postId) {
 
         Post post = postRepository.findById(postId)

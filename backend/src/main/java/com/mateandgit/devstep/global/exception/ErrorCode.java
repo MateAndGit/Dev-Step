@@ -24,7 +24,9 @@ public enum ErrorCode {
     INVALID_PASSWORD(401, "U012", "Invalid password"),
 
     // Post
-    POST_NOT_FOUND(404, "P001", "Post not found");
+    POST_NOT_FOUND(404, "P001", "Post not found"),
+    COMMENT_NOT_FOUND(404, "C001", "Comment not found"),
+    INVALID_COMMENT_DEPTH(400, "C002", "Invalid comment depth");
 
     private final int status;
     private final String code;

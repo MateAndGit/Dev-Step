@@ -1,9 +1,11 @@
 package com.mateandgit.devstep.domain.post.dto.response;
 
+import com.mateandgit.devstep.domain.comment.dto.response.CommentResponse;
 import com.mateandgit.devstep.domain.post.entity.Post;
 import lombok.Builder;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Builder
 public record PostResponse(
@@ -11,8 +13,11 @@ public record PostResponse(
         String title,
         String content,
         String authorNickname,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        List<CommentResponse> comments
 ) {
+
+
     public static PostResponse from(Post post) {
         return PostResponse.builder()
                 .id(post.getId())
@@ -20,6 +25,10 @@ public record PostResponse(
                 .content(post.getContent())
                 .authorNickname(post.getAuthor().getNickname())
                 .createdAt(post.getCreatedAt())
+                .comments(post.getComments().stream()
+                        .filter(comment -> comment.getParentComment() == null)
+                        .map(CommentResponse::from)
+                        .toList())
                 .build();
     }
 }
