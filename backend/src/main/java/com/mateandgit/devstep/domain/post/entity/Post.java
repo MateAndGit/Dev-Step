@@ -76,4 +76,8 @@ public class Post {
     public void increaseLikeCount() {
         this.likeCount++;
     }
+
+    public void decreaseLikeCount() {
+        this.likeCount--;
+    }
 }

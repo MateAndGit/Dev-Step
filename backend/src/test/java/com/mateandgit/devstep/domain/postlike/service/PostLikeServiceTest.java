@@ -1,8 +1,8 @@
 package com.mateandgit.devstep.domain.postlike.service;
 
-import com.mateandgit.devstep.domain.postlike.repositroy.PostLikeRepository;
 import com.mateandgit.devstep.domain.post.entity.Post;
 import com.mateandgit.devstep.domain.post.repository.PostRepository;
+import com.mateandgit.devstep.domain.postlike.repositroy.PostLikeRepository;
 import com.mateandgit.devstep.domain.user.entity.User;
 import com.mateandgit.devstep.global.exception.BusinessException;
 import com.mateandgit.devstep.global.security.CustomUserDetails;
@@ -16,12 +16,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 @ExtendWith(MockitoExtension.class)
@@ -44,7 +42,7 @@ class PostLikeServiceTest {
         Post post = createMockPost(1L, user);
         CustomUserDetails userDetails = new CustomUserDetails(user);
 
-        given(postRepository.existsByIdAndAuthorId(post.getId(), user.getId())).willReturn(false);
+        given(postLikeRepository.existsByPostIdAndUserId(post.getId(), user.getId())).willReturn(false);
         given(postRepository.findByIdWithLock(post.getId())).willReturn(Optional.of(post));
 
         // when
@@ -63,12 +61,34 @@ class PostLikeServiceTest {
         Post post = createMockPost(1L, user);
         CustomUserDetails userDetails = new CustomUserDetails(user);
 
-        given(postRepository.existsByIdAndAuthorId(any(),any())).willReturn(true);
+        given(postLikeRepository.existsByPostIdAndUserId(any(),any())).willReturn(true);
         
         // when & then
         assertThrows(BusinessException.class, () -> {
             postLikeService.likePost(post.getId(), userDetails);
         });
+    }
+
+    @Test
+    @DisplayName("Success: User cancels their like on a post")
+    void cancelLikePost_Success() {
+        // given
+        User user = createMockUser(1L, "nickname");
+        Post post = createMockPost(1L, user);
+        post.increaseLikeCount(); // Count is now 1
+
+        CustomUserDetails userDetails = new CustomUserDetails(user);
+
+        given(postLikeRepository.existsByPostIdAndUserId(post.getId(), user.getId())).willReturn(true);
+        given(postRepository.findByIdWithLock(post.getId())).willReturn(Optional.of(post));
+
+        // when
+        postLikeService.cancelLikePost(post.getId(), userDetails);
+
+        // then
+        assertThat(post.getLikeCount()).isEqualTo(0);
+        verify(postLikeRepository, times(1)).deleteByPostIdAndUserId(post.getId(), user.getId());
+        verify(postLikeRepository, never()).save(any());
     }
 
     private User createMockUser(Long id, String nickname) {

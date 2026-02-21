@@ -41,4 +41,22 @@ public class PostLikeService {
 
         postLikeRepository.save(like);
     }
+
+    public void cancelLikePost(Long postId, CustomUserDetails userDetails) {
+
+        Long userId = userDetails.user().getId();
+
+        if (!postLikeRepository.existsByPostIdAndUserId(postId, userId)) {
+            throw new BusinessException(POST_ALREADY_LIKED);
+        }
+
+        Post post = postRepository.findByIdWithLock(postId)
+                .orElseThrow(() -> new BusinessException(POST_NOT_FOUND));
+
+        log.info("[LikeService] cancelLikePost execution - postId: {}, userId: {}", postId, userId);
+
+        post.decreaseLikeCount();
+
+        postLikeRepository.deleteByPostIdAndUserId(postId, userId);
+    }
 }

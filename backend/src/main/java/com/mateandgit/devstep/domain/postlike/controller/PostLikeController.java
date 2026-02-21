@@ -25,4 +25,12 @@ public class PostLikeController {
         postLikeService.likePost(postId, userDetails);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
+
+    @PostMapping("/{postId}/cancel")
+    public ResponseEntity<ApiResponse<Void>> cancelLikePost(
+            @PathVariable Long postId,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        postLikeService.cancelLikePost(postId, userDetails);
+        return ResponseEntity.ok(ApiResponse.success(null));
+    }
 }
