@@ -14,7 +14,8 @@ public record PostResponse(
         String content,
         String authorNickname,
         LocalDateTime createdAt,
-        List<CommentResponse> comments
+        List<CommentResponse> comments,
+        Long likeCount
 ) {
 
 
@@ -29,6 +30,7 @@ public record PostResponse(
                         .filter(comment -> comment.getParentComment() == null)
                         .map(CommentResponse::from)
                         .toList())
+                .likeCount(post.getLikeCount())
                 .build();
     }
 }
