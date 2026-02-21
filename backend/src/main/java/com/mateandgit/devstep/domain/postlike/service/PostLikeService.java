@@ -1,7 +1,7 @@
-package com.mateandgit.devstep.domain.like.service;
+package com.mateandgit.devstep.domain.postlike.service;
 
-import com.mateandgit.devstep.domain.like.entity.PostLike;
-import com.mateandgit.devstep.domain.like.repositroy.PostLikeRepository;
+import com.mateandgit.devstep.domain.postlike.entity.PostLike;
+import com.mateandgit.devstep.domain.postlike.repositroy.PostLikeRepository;
 import com.mateandgit.devstep.domain.post.entity.Post;
 import com.mateandgit.devstep.domain.post.repository.PostRepository;
 import com.mateandgit.devstep.global.exception.BusinessException;
@@ -27,7 +27,7 @@ public class PostLikeService {
 
         Long userId = userDetails.user().getId();
 
-        if (postRepository.existsByIdAndAuthorId(postId, userId)) {
+        if (postLikeRepository.existsByPostIdAndUserId(postId, userId)) {
                 throw new BusinessException(POST_ALREADY_LIKED);
         }
 

@@ -1,6 +1,6 @@
-package com.mateandgit.devstep.domain.like.service;
+package com.mateandgit.devstep.domain.postlike.service;
 
-import com.mateandgit.devstep.domain.like.repositroy.PostLikeRepository;
+import com.mateandgit.devstep.domain.postlike.repositroy.PostLikeRepository;
 import com.mateandgit.devstep.domain.post.entity.Post;
 import com.mateandgit.devstep.domain.post.repository.PostRepository;
 import com.mateandgit.devstep.domain.user.entity.User;
@@ -70,8 +70,6 @@ class PostLikeServiceTest {
             postLikeService.likePost(post.getId(), userDetails);
         });
     }
-
-
 
     private User createMockUser(Long id, String nickname) {
         User user = User.createUser(nickname, nickname + "@test.com", "password");

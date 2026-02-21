@@ -1,4 +1,4 @@
-package com.mateandgit.devstep.domain.like.service;
+package com.mateandgit.devstep.domain.postlike.service;
 
 import com.mateandgit.devstep.domain.post.entity.Post;
 import com.mateandgit.devstep.domain.post.repository.PostRepository;
