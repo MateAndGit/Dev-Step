@@ -1,0 +1,57 @@
+version: '3.4'
+
+networks:
+  app-network:
+services:
+  # 1.DB 서비스
+  db:
+    image: postgres:15
+    container_name: postgres_db
+    networks:
+      - app-network
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "${DB_PORT}:5432"
+    volumes:
+      - ./backend/postgres_data:/var/lib/postgresql/data
+
+  # 2. 성능 지표 저장소
+  influxdb:
+    image: influxdb:1.8
+    container_name: influxdb
+    networks:
+      - app-network
+    ports:
+      - "8086:8086"
+    environment:
+      - INFLUXDB_DB=k6
+
+  # 3. 시각화 도구
+  grafana:
+    image: grafana/grafana:9.3.8
+    container_name: grafana
+    networks:
+      - app-network
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_BASIC_ENABLED=false
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning
+
+  # 4. 부하 테스트 도구
+  k6:
+    image: grafana/k6:latest
+    container_name: k6
+    networks:
+      - app-network
+    environment:
+      - K6_OUT=influxdb=http://influxdb:8086/k6
+    volumes:
+      - ./k6:/scripts
+    entrypoint: ["sh", "-c", "sleep 20 && k6 run /scripts/test.js"]
