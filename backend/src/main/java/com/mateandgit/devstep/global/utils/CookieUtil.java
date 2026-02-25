@@ -13,7 +13,7 @@ public class CookieUtil {
     public ResponseCookie createRefreshTokenCookie(String refreshToken) {
         return ResponseCookie.from("refreshToken", refreshToken)
                 .httpOnly(true)
-                .secure(true)
+                .secure(false)
                 .path("/")
                 .maxAge(refreshTokenExpirationMs / 1000)
                 .sameSite("Strict")

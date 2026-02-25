@@ -5,6 +5,7 @@ import com.mateandgit.devstep.domain.post.entity.Post;
 import lombok.Builder;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Builder
@@ -17,7 +18,9 @@ public record PostResponse(
         List<CommentResponse> comments,
         Long likeCount
 ) {
-
+    public PostResponse(Long id, String title, String content, String authorNickname, LocalDateTime createdAt) {
+        this(id, title, content, authorNickname, createdAt, new ArrayList<>(), 0L);
+    }
 
     public static PostResponse from(Post post) {
         return PostResponse.builder()

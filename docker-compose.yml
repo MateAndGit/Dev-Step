@@ -54,4 +54,4 @@ services:
       - K6_OUT=influxdb=http://influxdb:8086/k6
     volumes:
       - ./k6:/scripts
-    entrypoint: ["sh", "-c", "sleep 20 && k6 run /scripts/test.js"]
+    command: []
