@@ -14,6 +14,7 @@ import com.mateandgit.devstep.global.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,8 +40,7 @@ public class PostService {
         return savedPost.getId();
     }
 
-    // TODO: Fetch Join이나 EntityGraph 적용해서 Post 조회 시 Comment와 Author 한 번에 가져오기
-    public Page<PostResponse> getPostList(Pageable pageable, PostSearchCondition condition) {
+    public Slice<PostResponse> getPostList(Pageable pageable, PostSearchCondition condition) {
         return postRepository.searchGetPost(pageable, condition);
     }
 
