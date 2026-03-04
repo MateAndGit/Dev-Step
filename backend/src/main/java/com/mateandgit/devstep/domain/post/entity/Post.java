@@ -21,6 +21,9 @@ import java.util.List;
 @Getter
 @EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Table(name = "post", indexes = {
+        @Index(name = "idx_post_created_at", columnList = "created_at DESC")
+})
 public class Post {
 
     @Id

@@ -12,6 +12,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -32,10 +33,10 @@ public class PostController {
     }
 
     @GetMapping("/list")
-    public ResponseEntity<ApiResponse<Page<PostResponse>>> getPostList(
+    public ResponseEntity<ApiResponse<Slice<PostResponse>>> getPostList(
             Pageable pageable,
             @ModelAttribute PostSearchCondition condition) {;
-        Page<PostResponse> postList = postService.getPostList(pageable, condition);
+        Slice<PostResponse> postList = postService.getPostList(pageable, condition);
         return ResponseEntity.ok(ApiResponse.success(postList));
     }
 

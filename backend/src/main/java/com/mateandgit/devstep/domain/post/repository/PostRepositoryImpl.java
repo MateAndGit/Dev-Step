@@ -4,12 +4,11 @@ import com.mateandgit.devstep.domain.post.dto.request.PostSearchCondition;
 import com.mateandgit.devstep.domain.post.dto.response.PostResponse;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.support.PageableExecutionUtils;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
 import org.springframework.util.StringUtils;
 
 import java.util.List;
@@ -17,14 +16,14 @@ import java.util.List;
 import static com.mateandgit.devstep.domain.post.entity.QPost.post;
 
 @RequiredArgsConstructor
-public class PostRepositoryImpl implements PostRepositoryCustom{
+public class PostRepositoryImpl implements PostRepositoryCustom {
 
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public Page<PostResponse> searchGetPost(Pageable pageable, PostSearchCondition condition) {
+    public Slice<PostResponse> searchGetPost(Pageable pageable, PostSearchCondition condition) {
 
-        List<PostResponse> postResponses = queryFactory
+        List<PostResponse> content = queryFactory
                 .select(Projections.constructor(PostResponse.class,
                         post.id,
                         post.title,
@@ -33,25 +32,24 @@ public class PostRepositoryImpl implements PostRepositoryCustom{
                         post.createdAt
                 ))
                 .from(post)
+                .join(post.author)
                 .where(
                         postTitleEq(condition.title()),
                         postContent(condition.content()),
                         postAuthorNickname(condition.authorNickname())
                 )
+                .orderBy(post.createdAt.desc())
                 .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
+                .limit(pageable.getPageSize() + 1)
                 .fetch();
 
-        JPAQuery<Long> countQuery = queryFactory
-                .select(post.count())
-                .from(post)
-                .where(
-                        postTitleEq(condition.title()),
-                        postContent(condition.content()),
-                        postAuthorNickname(condition.authorNickname())
-                );
+        boolean hasNext = false;
+        if (content.size() > pageable.getPageSize()) {
+            content.remove(pageable.getPageSize());
+            hasNext = true;
+        }
 
-        return PageableExecutionUtils.getPage(postResponses, pageable, countQuery::fetchOne);
+        return new SliceImpl<>(content, pageable, hasNext);
     }
 
     private BooleanExpression postTitleEq(String title) {
