@@ -9,6 +9,10 @@ spring:
   profiles:
     include: secret
 
+  datasource:
+    hikari:
+      maximum-pool-size: 30
+
   jpa:
     hibernate:
       ddl-auto: create
