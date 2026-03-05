@@ -25,7 +25,7 @@ public class CommentService {
 
     public Long createComment(Long postId, CommentCreateRequest request, CustomUserDetails userDetails) {
 
-        Post post = postRepository.findById(postId)
+        Post post = postRepository.findByIdWithPessimisticLock(postId)
                 .orElseThrow(() -> new BusinessException(POST_NOT_FOUND));
 
         Comment parentComment = null;
@@ -48,6 +48,7 @@ public class CommentService {
 
         Comment savedComment = commentRepository.save(comment);
         post.addComment(savedComment);
+        post.incrementCommentCount();
 
         return savedComment.getId();
     }
@@ -88,5 +89,6 @@ public class CommentService {
         }
 
         commentRepository.delete(comment);
+        post.decrementCommentCount();
     }
 }
