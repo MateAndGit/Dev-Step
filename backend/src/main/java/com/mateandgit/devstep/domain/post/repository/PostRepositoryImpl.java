@@ -34,12 +34,13 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
                 .from(post)
                 .join(post.author)
                 .where(
+                        ltPostId(condition.lastPostId()),
+                        postCategoryIdEq(condition.categoryId()),
                         postTitleEq(condition.title()),
-                        postContent(condition.content()),
-                        postAuthorNickname(condition.authorNickname())
+                        postContentEq(condition.content()),
+                        postAuthorNicknameEq(condition.authorNickname())
                 )
-                .orderBy(post.createdAt.desc())
-                .offset(pageable.getOffset())
+                .orderBy(post.id.desc())
                 .limit(pageable.getPageSize() + 1)
                 .fetch();
 
@@ -52,15 +53,26 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
         return new SliceImpl<>(content, pageable, hasNext);
     }
 
+    // --- 조건 메서드 (BooleanExpression) ---
+
+    // No-Offset을 위한 ID 비교 조건
+    private BooleanExpression ltPostId(Long lastPostId) {
+        return lastPostId != null ? post.id.lt(lastPostId) : null;
+    }
+
+    private BooleanExpression postCategoryIdEq(Long categoryId) {
+        return categoryId != null ? post.category.id.eq(categoryId) : null;
+    }
+
     private BooleanExpression postTitleEq(String title) {
         return StringUtils.hasText(title) ? post.title.contains(title) : null;
     }
 
-    private BooleanExpression postContent(String content) {
+    private BooleanExpression postContentEq(String content) {
         return StringUtils.hasText(content) ? post.content.contains(content) : null;
     }
 
-    private BooleanExpression postAuthorNickname(String authorNickname) {
+    private BooleanExpression postAuthorNicknameEq(String authorNickname) {
         return StringUtils.hasText(authorNickname) ? post.author.nickname.contains(authorNickname) : null;
     }
 }

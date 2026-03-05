@@ -1,5 +1,7 @@
 package com.mateandgit.devstep.domain.post.service;
 
+import com.mateandgit.devstep.domain.category.domain.Category;
+import com.mateandgit.devstep.domain.category.repository.CategoryRepository;
 import com.mateandgit.devstep.domain.post.dto.request.PostCreateRequest;
 import com.mateandgit.devstep.domain.post.dto.request.PostSearchCondition;
 import com.mateandgit.devstep.domain.post.dto.request.PostUpdateRequest;
@@ -10,9 +12,9 @@ import com.mateandgit.devstep.domain.post.repository.PostRepository;
 import com.mateandgit.devstep.domain.user.entity.User;
 import com.mateandgit.devstep.domain.user.repository.UserRepository;
 import com.mateandgit.devstep.global.exception.BusinessException;
+import com.mateandgit.devstep.global.exception.ErrorCode;
 import com.mateandgit.devstep.global.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
@@ -27,6 +29,7 @@ public class PostService {
 
     private final PostRepository postRepository;
     private final UserRepository userRepository;
+    private final CategoryRepository categoryRepository;
 
     @Transactional
     public Long createPost(CustomUserDetails userDetails, PostCreateRequest request) {
@@ -34,7 +37,10 @@ public class PostService {
         User author = userRepository.findById(userDetails.user().getId())
                 .orElseThrow(() -> new BusinessException(USER_NOT_FOUND));
 
-        Post post  = Post.createPost(request.title(), request.content(), author);
+        Category category = categoryRepository.findByCategoryType(request.categoryType())
+                .orElseThrow(() -> new BusinessException(ErrorCode.CATEGORY_NOT_FOUND));
+
+        Post post  = Post.createPost(category, request.title(), request.content(), author);
         Post savedPost = postRepository.save(post);
 
         return savedPost.getId();
@@ -62,7 +68,10 @@ public class PostService {
             throw new BusinessException(UNAUTHORIZED_ACCESS);
         }
 
-        post.updatePost(request.title(), request.content());
+        Category category = categoryRepository.findByCategoryType(request.categoryType())
+                .orElseThrow(() -> new BusinessException(ErrorCode.CATEGORY_NOT_FOUND));
+
+        post.updatePost(category, request.title(), request.content());
 
         return PostUpdateResponse.from(post);
     }

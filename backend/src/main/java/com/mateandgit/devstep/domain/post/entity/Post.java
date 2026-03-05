@@ -1,5 +1,6 @@
 package com.mateandgit.devstep.domain.post.entity;
 
+import com.mateandgit.devstep.domain.category.domain.Category;
 import com.mateandgit.devstep.domain.comment.entity.Comment;
 import com.mateandgit.devstep.domain.user.entity.User;
 import com.mateandgit.devstep.global.utils.ValidationUtils;
@@ -22,7 +23,7 @@ import java.util.List;
 @EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "post", indexes = {
-        @Index(name = "idx_post_created_at", columnList = "created_at DESC")
+        @Index(name = "idx_post_category_id_id", columnList = "category_id, id DESC")
 })
 public class Post {
 
@@ -43,6 +44,10 @@ public class Post {
     @JoinColumn(name = "user_id", nullable = false)
     private User author;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id", nullable = false)
+    private Category category;
+
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
     private List<Comment> comments = new ArrayList<>();
 
@@ -53,22 +58,25 @@ public class Post {
     private LocalDateTime updatedAt;
 
     @Builder
-    public Post(String title, String content, User author) {
+    public Post(Category category, String title, String content, User author) {
+        this.category = category;
         this.title = title;
         this.content = content;
         this.author = author;
     }
 
-    public static Post createPost(String title, String content, User author) {
+    public static Post createPost(Category category, String title, String content, User author) {
         ValidationUtils.validatePostCreateRequest(title, content);
         return Post.builder()
+                .category(category)
                 .title(title)
                 .content(content)
                 .author(author)
                 .build();
     }
 
-    public void updatePost(String title,String content) {
+    public void updatePost(Category category, String title,String content) {
+        this.category = category;
         this.title = title;
         this.content = content;
     }
