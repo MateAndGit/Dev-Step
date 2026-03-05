@@ -27,7 +27,10 @@ public enum ErrorCode {
     POST_NOT_FOUND(404, "P001", "Post not found"),
     COMMENT_NOT_FOUND(404, "C001", "Comment not found"),
     INVALID_COMMENT_DEPTH(400, "C002", "Invalid comment depth"),
-    POST_ALREADY_LIKED(409, "P002", "Post already liked");
+    POST_ALREADY_LIKED(409, "P002", "Post already liked"),
+
+    // Category
+    CATEGORY_NOT_FOUND(404, "C003", "Category not found");
 
     private final int status;
     private final String code;
