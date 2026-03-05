@@ -31,7 +31,7 @@ public class PostLikeService {
                 throw new BusinessException(POST_ALREADY_LIKED);
         }
 
-        Post post = postRepository.findByIdWithLock(postId)
+        Post post = postRepository.findByIdWithPessimisticLock(postId)
                 .orElseThrow(() -> new BusinessException(POST_NOT_FOUND));
 
         log.info("[LikeService] likePost execution - postId: {}, userId: {}", postId, userId);
@@ -50,7 +50,7 @@ public class PostLikeService {
             throw new BusinessException(POST_ALREADY_LIKED);
         }
 
-        Post post = postRepository.findByIdWithLock(postId)
+        Post post = postRepository.findByIdWithPessimisticLock(postId)
                 .orElseThrow(() -> new BusinessException(POST_NOT_FOUND));
 
         log.info("[LikeService] cancelLikePost execution - postId: {}, userId: {}", postId, userId);

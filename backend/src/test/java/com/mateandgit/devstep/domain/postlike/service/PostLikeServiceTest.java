@@ -43,7 +43,7 @@ class PostLikeServiceTest {
         CustomUserDetails userDetails = new CustomUserDetails(user);
 
         given(postLikeRepository.existsByPostIdAndUserId(post.getId(), user.getId())).willReturn(false);
-        given(postRepository.findByIdWithLock(post.getId())).willReturn(Optional.of(post));
+        given(postRepository.findByIdWithPessimisticLock(post.getId())).willReturn(Optional.of(post));
 
         // when
         postLikeService.likePost(post.getId(), userDetails);
@@ -80,7 +80,7 @@ class PostLikeServiceTest {
         CustomUserDetails userDetails = new CustomUserDetails(user);
 
         given(postLikeRepository.existsByPostIdAndUserId(post.getId(), user.getId())).willReturn(true);
-        given(postRepository.findByIdWithLock(post.getId())).willReturn(Optional.of(post));
+        given(postRepository.findByIdWithPessimisticLock(post.getId())).willReturn(Optional.of(post));
 
         // when
         postLikeService.cancelLikePost(post.getId(), userDetails);

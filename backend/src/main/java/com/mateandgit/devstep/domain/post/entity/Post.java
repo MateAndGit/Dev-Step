@@ -36,7 +36,8 @@ public class Post {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
-    private long likeCount = 0L;
+    private Long likeCount = 0L;
+    private Long commentCount = 0L;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -82,5 +83,15 @@ public class Post {
 
     public void decreaseLikeCount() {
         this.likeCount--;
+    }
+
+    public void incrementCommentCount() {
+        this.commentCount++;
+    }
+
+    public void decrementCommentCount() {
+        if (this.commentCount > 0) {
+            this.commentCount--;
+        }
     }
 }
