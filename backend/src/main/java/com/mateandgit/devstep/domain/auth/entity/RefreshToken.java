@@ -1,27 +1,25 @@
 package com.mateandgit.devstep.domain.auth.entity;
 
-import jakarta.persistence.*;
-import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.redis.core.RedisHash;
+import org.springframework.data.redis.core.index.Indexed;
 
-@Entity
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@RedisHash(value = "refreshToken", timeToLive = 604800) // TTL 7일 (초 단위)
 public class RefreshToken {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(nullable = false, unique = true)
-    private String token;
-
-    @Column(nullable = false)
     private Long userId;
 
-    public RefreshToken(String token, Long userId) {
-        this.token = token;
+    @Indexed
+    private String token;
+
+    @Builder
+    public RefreshToken(Long userId, String token) {
         this.userId = userId;
+        this.token = token;
     }
 
     public void updateToken(String newToken) {

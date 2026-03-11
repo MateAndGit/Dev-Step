@@ -54,11 +54,7 @@ public class AuthService {
         String accessToken = jwtTokenProvider.createAccessToken(user.getEmail());
         String refreshToken = jwtTokenProvider.createRefreshToken(user.getEmail());
 
-        refreshTokenRepository.findByUserId(user.getId())
-                .ifPresentOrElse(
-                        tokenEntity -> tokenEntity.updateToken(refreshToken),
-                        () -> refreshTokenRepository.save(new RefreshToken(refreshToken, user.getId()))
-                );
+        refreshTokenRepository.save(new RefreshToken(user.getId(), refreshToken));
 
         return new TokenResponse(accessToken, refreshToken);
     }
@@ -79,6 +75,6 @@ public class AuthService {
     @Transactional
     public void logout(CustomUserDetails userDetails) {
         Long userId = userDetails.user().getId();
-        refreshTokenRepository.deleteByUserId(userId);
+        refreshTokenRepository.deleteById(userId);
     }
 }
